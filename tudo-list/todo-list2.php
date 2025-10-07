@@ -12,15 +12,39 @@ if($conn->connect_error){
 }
 
 # criacao de tarefas
-if(isset($_POST['descricao'])){
+if(isset($_POST['descricao']) && !empty(trim( string: $_POST['descricao']))){
     $descricao = $conn->real_escape_string($_POST['descricao']);
     $sqlInsert = "INSERT INTO tarefas (descricao) VALUES ('$descricao')"; 
+    
+    if($conn->query(query: $sqlInsert) === TRUE) {
+        header(header: 'location: todo-list2.php');
+    }
+
 }
 # Exclusão de tarefas
+if(isset($_GET['delete'])){
+    $id = intval( $_GET['delete']);
+
+    $sqlDelete = "DELETE FROM tarefas WHERE id= $id";
+    if( $conn->query($sqlDelete) === TRUE){
+        header("location: todo-list2.php");
+    }
+
+}
 
 
-$tarefas=[]; 
+
+
 # Listar tarefas
+$tarefas=[]; 
+$sqlSelect = "SELECT * FROM tarefas ORDER BY data_criacao DESC";
+$result = $conn->query(query: $sqlSelect);
+
+if($result->num_rows > 0){
+    while($row = $result->fetch_assoc()){
+        $tarefas[]=$row;
+    }
+}
 
 
 ?>
@@ -42,7 +66,19 @@ $tarefas=[];
 
     <h2>Suas tarefas</h2>
     <?php if(!empty($tarefas)):?>
-    <h3>Suas tarefas</h3>
+
+  <ul>
+    <?php foreach($tarefas as $tarefa):?>
+        <li>
+            <?php echo $tarefa['descricao']?>
+            <a href="todo-list2.php?delete=<?php echo $tarefa['id']?>">Excluir</a>
+            <li>
+                <?php endforeach ?>
+    </ul>
+
+
+
+
     <?php else:?>
     <h3>Não tem tarefas</h3>
     <?php endif;?>
